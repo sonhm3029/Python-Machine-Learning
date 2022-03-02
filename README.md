@@ -1,5 +1,21 @@
 # Python and Machine Learning
 
+# Table of contents
+
+- [Python and Machine Learning](#python-and-machine-learning)
+- [I. Class](#i-class)
+  - [1. Class basic](#1-class-basic)
+  - [2. Class Inheritance (kế thừa):](#2-class-inheritance-k-tha)
+  - [3. Iterators trong class](#3-iterators-trong-class)
+- [II. Modules](#ii-modules)
+- [III. JSON](#iii-json)
+- [IV Try...Except](#iv-tryexcept)
+- [|chức năng](#chc-nng)
+- [V RegEX](#v-regex)
+- [VI PIP](#vi-pip)
+- [VII File handling](#vii-file-handling)
+  - [1. Đọc file](#1-c-file)
+
 # I. Class
 
 ## 1. Class basic
