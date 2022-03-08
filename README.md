@@ -484,3 +484,84 @@ f = open("demofile.txt", "r")
 print(f.readline())
 f.close()
 ```
+
+## 2. Ghi và tạo files
+
+Để ghi ra file thì thêm parameter vào `open()`;
+
+- `"a"` - Append: Ghi tiếp vào từ cuối file.
+- `"w"` - Write: Ghi đè lên nội dung đã có.
+
+**Ví dụ:** Ghi thêm vào file
+
+```Python
+f = open("demofile2.txt", "a")
+f.write("Now the file has more content!")
+f.close()
+
+#open and read the file after the appending:
+f = open("demofile2.txt", "r")
+print(f.read())
+```
+
+**Ví dụ:** Ghi đè vào file
+
+```Python
+f = open("demofile3.txt", "w")
+f.write("Woops! I have deleted the content!")
+f.close()
+
+#open and read the file after the appending:
+f = open("demofile3.txt", "r")
+print(f.read())
+```
+
+Có các cách tạo file như sau:
+
+Thêm parameter vào `open()` với:
+
+`"x"` - Create - Tạo file, trả vễ lỗi nếu file đã tồn tại
+
+`"a"` - Append - Tạo file nếu như file không tồn tại
+
+`"w"` - Write - Tạo file nếu file không tồn tại.
+
+## 3. Xóa file
+
+Để xóa file thì cần dùng module `os`
+
+```Python
+import 'os';
+
+os.remove(<Tên file>);
+```
+
+Ta có thể kiểm tra xem file có tồn tại hay không, nếu có thì xóa file:
+
+```Python
+import 'os'
+
+if os.path.exist(<đường dẫn đến file>):
+  os.remove(<đường dẫn đến file>)
+else:
+  print("Không tồn tại đường dẫn tới file");
+```
+
+Để xóa folder:
+
+```Python
+import 'os';
+
+os.rmdir(<đường dẫn đến folder>);
+```
+
+**Chú ý:** Chỉ có thể xóa folder rỗng.
+
+
+
+# Tìm hiểu về các Python module sử dụng trong Machine Learning:
+
+1. [numpy](./numpy/README.md)
+2. [pandas](./pandas/READEME.md)
+3. [spicy](./scicy/README.md)
+4. [matplotlib](./matplotlib/README.md)

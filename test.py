@@ -1,7 +1,14 @@
-class Parent:
-    def __init__(self, ten, tuoi):
-        self.ten = ten;
-        self.tuoi = tuoi;
+import numpy as np
 
-    def showDetail(self):
-        print("Ten: {}\n Tuoi: {}".format(self.ten, self.tuoi))
+A = np.array([[1, 5], [2, 3]])
+B = np.array([[5, 8], [7, 3]])
+
+def myFunc(A):
+    return np.sum(np.max(A, axis=1)- np.min(A,axis=1));
+
+
+def norm_fro(A):
+    return np.sqrt(np.sum(A**2));
+def dist_fro(A,B):
+    return np.sum((A-B)**2)
+
