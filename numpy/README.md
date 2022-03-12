@@ -227,7 +227,6 @@ z = x.dot(y)
 Nói chung, các phép toán cho mảng 2 chiều với nhau là element wise, tức là từng cặp phần tử cùng vị trí với nhau.
 
 # II. Ma trận
-
 ![np-1](../img/np-1.png)
 
 ## Chú ý truy cập ma trận
@@ -278,7 +277,7 @@ array([5, 9])
 ```
 
 
-# Các phép toán trên ma trận (mảng nhiều chiều)
+## Các phép toán trên ma trận (mảng nhiều chiều)
 
 Ví dụ với các hàm `np.sum, np.min,np.max, np.mean`
 
@@ -400,3 +399,312 @@ array([[  1.00000000e+00,   3.90625000e+05],
 ```
 
 **Chú ý:** `A*B` không phải là tích giữa 2 ma trận như trong đại số mà là tích theo `element wise` như đã nói ở trên.
+
+## Ma trận chuyển vị
+
+Để thực hiện ma trận chuyển vị có thể dùng `.T` hoặc `np.transpose()`
+
+```Python
+>>> import numpy as np 
+>>> A = np.array([[1, 2, 3],[4, 5, 6]])
+>>> A
+array([[1, 2, 3],
+       [4, 5, 6]])
+>>> A.T 
+array([[1, 4],
+       [2, 5],
+       [3, 6]])
+>>> np.transpose(A)
+array([[1, 4],
+       [2, 5],
+       [3, 6]])
+```
+
+
+## Reshape ma trận
+
+```Python
+>>> np.reshape(A, (3, 2))
+array([[1, 2],
+       [3, 4],
+       [5, 6]])
+>>> A.reshape(3, 2)
+array([[1, 2],
+       [3, 4],
+       [5, 6]])
+```
+
+```Python
+>>> np.reshape(A, 6) # to a 1d numpy array
+array([1, 2, 3, 4, 5, 6])
+>>> A.reshape(3, 1, 2) # to a 3d numpy array 
+array([[[1, 2]],
+
+       [[3, 4]],
+
+       [[5, 6]]])
+```
+
+Ta không nhất thiết phải xác định rõ hết số chiều của ma trận khi reshape, ta chỉ cần biết được ít nhất một chiều và để `-1` cho các chỉ số còn lại, ma trận sẽ được tụ động tính toán chiều còn lại (Do số phần tử của ma trận không đổi)
+
+```Python
+>>> A.reshape(-1) # to 1d array, its size must be 6
+array([1, 2, 3, 4, 5, 6])
+>>> np.reshape(A, (6, -1)) # ~ a 2d array of shape 6x1
+array([[1],
+       [2],
+       [3],
+       [4],
+       [5],
+       [6]])
+```
+
+
+**Chú ý thứ tự của phép toán reshape**
+
+- Trong reshape ta có thể truyền vào tham số `order='F'` hoặc `order='C'`. Nếu không truyền thì mặc định sẽ là `C`.
+
+Trong đó đối với:
+
+- `order='C'` - Phép toán reshape được thực hiện từ trong ra ngoài (`axis=1`-> `axis=0`). Tức là thực hiện theo từng hàng một
+
+- `order='F'` - Phép toán reshape được thực hiện từ ngoài vào trong (`axis=0`-> `axis=1`). Tức là thực hiện theo từng cột một.
+
+
+```Python
+>>> A
+array([[1, 2, 3],
+       [4, 5, 6]])
+>>> A.reshape(3, -1, order = 'F')
+array([[1, 5],
+       [4, 3],
+       [2, 6]])
+>>> 
+```
+
+```Python
+np.reshape(A,(3,-1),order='C')
+
+array([
+       [1,2],
+       [3,4],
+       [5,6]
+])
+```
+
+
+## Phép toán giữa ma trận và mảng một chiều
+
+Khi thực hiện phép toán giữa ma trận và vector thì phép toán sẽ được thực hiện giữa từng hàng của ma trận với vector đó theo quy tắc elment wise.
+
+```Python
+>>> import numpy as np 
+>>> A = np.arange(12).reshape(3, -1)
+>>> A
+array([[ 0,  1,  2,  3],
+       [ 4,  5,  6,  7],
+       [ 8,  9, 10, 11]])
+>>> b = np.array([1., 2, 3, 5])
+>>> A + b
+array([[  1.,   3.,   5.,   8.],
+       [  5.,   7.,   9.,  12.],
+       [  9.,  11.,  13.,  16.]])
+>>> A*b 
+array([[  0.,   2.,   6.,  15.],
+       [  4.,  10.,  18.,  35.],
+       [  8.,  18.,  30.,  55.]])
+```
+
+Tương tự với các phép `-,*,/`.
+
+**Chú ý, vector thực hiện phép toán phải có số chiều = số phần tử trên một hàng của ma trận.**
+
+
+## Phép nhân ma trận với ma trận, ma trận với vector chuẩn theo đại số:
+
+
+### 1. Tích của ma trận với ma trận
+
+![anh_1](../img//note_tay_1.jpg)
+
+
+Để tính tích như trên, ta dùng `np.dot(A,B)` hoặc `A.dot(B)`
+
+Chú ý, quy tắc tính nhân ma trận tuân theo đại số. Tức là số cột của A phải = số hàng của B hay ` A.shape[1] == B.shape[0] `
+
+```Python
+>>> import numpy as np 
+>>> A = np.arange(12).reshape(4, 3)
+>>> A
+array([[ 0,  1,  2],
+       [ 3,  4,  5],
+       [ 6,  7,  8],
+       [ 9, 10, 11]])
+>>> B = np.arange(-5, 7).reshape(3,-1)
+>>> B
+array([[-5, -4, -3, -2],
+       [-1,  0,  1,  2],
+       [ 3,  4,  5,  6]])
+>>> A.dot(B)
+array([[  5,   8,  11,  14],
+       [ -4,   8,  20,  32],
+       [-13,   8,  29,  50],
+       [-22,   8,  38,  68]])
+>>> np.dot(A, B)
+array([[  5,   8,  11,  14],
+       [ -4,   8,  20,  32],
+       [-13,   8,  29,  50],
+       [-22,   8,  38,  68]])
+```
+
+Tích của ma trận thì có tính kết hợp `ABC = A(BC)=(AB)C` và không có tính giao hoán. Cần phải chú ý.
+
+### 2. Tích của ma trận và vector
+
+Chú ý rằng. Mảng một chiều được tạo bởi `np.array` 
+
+```Python
+>>> A
+array([[ 0,  1,  2],
+       [ 3,  4,  5],
+       [ 6,  7,  8],
+       [ 9, 10, 11]])
+>>> b = np.array([1, 3, 4])
+```
+
+```Python
+>>> A.dot(b)
+array([11, 35, 59, 83])
+>>> A*b
+array([[ 0,  3,  8],
+       [ 3, 12, 20],
+       [ 6, 21, 32],
+       [ 9, 30, 44]])
+```
+
+Ta thấy khi thực hiện nhân đại số `A.dot(b)`(`b` đứng sau trong phép toán) `b` sẽ được coi như một vector cột `(3,1)` nên kết quả của `A.dot(b)` sẽ là một mảng một chiều có có số phần tử là 4 như quy tắc nhân trong đại số.
+
+Tuy nhiên khi thực hiện `b.dot(A)` thì `b` sẽ lại được coi như một vector hàng `(1,3)` và không thỏa mãn phép nhân.
+
+```Python
+>>> b.dot(A)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+ValueError: shapes (3,) and (4,3) not aligned: 3 (dim 0) != 4 (dim 0)
+>>> c = np.array([1, 2, 3, 4])
+>>> c.dot(A)
+array([60, 70, 80])
+```
+
+Ta thấy ví dụ với `c` thì thỏa mã vì `c` được coi như vector hàng `(1,4)` đáp ứng `c.shape[1] == A.shape[0]`. 
+
+# III. Số ngẫu nhiên
+
+## Tạo số ngẫu nhiên trong nửa đoạn từ [0-1)
+
+```Python
+>>> import numpy as np 
+>>> np.random.rand() 
+0.38919680466308004
+>>> np.random.rand(3)
+array([ 0.48677611,  0.70819795,  0.32393605])
+>>> np.random.rand(3, 2)
+array([[ 0.29713565,  0.57377171],
+       [ 0.0365262 ,  0.04146013],
+       [ 0.63039945,  0.8643891 ]])
+```
+
+Hoặc dùng
+
+```Python
+np.random.seed()
+```
+
+## Tạo số nguyên ngẫu nhiên
+
+Dùng `np.random.randint`:
+
+![randint](../img//randint.png)
+
+```Python
+from numpy import random
+
+print(random.randint(100))# Tạo ra số nguyên nằm trong nửa đoạn [0,100)
+
+print(random.randint(100, size=(5))) # Tạo mảng có 5 phần tử là số nguyên nằm trong nửa đoạn [0.100)
+
+print(random.randint(2,100,size=(2,3)))
+
+#hoặc
+
+print(random.randint(2,100,(2,3)))
+
+#Đều là tạo ra mảng 2 chiều kích thuowowccs (2,3) có các phần tử là các số nguyên nằm trong nửa đoạn [2,100).
+"""
+Nếu như randint(low,hight,size=()) nếu truyền vào kích thước thì không cần size=() mà chỉ cần short hand ()
+
+Nếu như randint(hight, size=()) thì kích thước bắt buộc p có size không sẽ gây ra lỗi vì khi có 2 tham số thì mặc định tham số 1 = low, tham số 2 = high
+"""
+```
+
+## Lấy ra một số phần tử bất kì của một mảng:
+
+Dùng hàm `np.random.choice()`:
+
+![choice](../img//choice.png)
+
+```Python
+from numpy import random
+
+x = random.choice([3, 5, 7, 9])
+
+print(x)
+```
+
+Nếu như chỉ truyền vào mảng thì hàm sẽ trả về 1 phần tử.
+
+```Python
+from numpy import random
+
+x = random.choice([3, 5, 7, 9], size=(3, 5))
+
+print(x)
+```
+
+Nếu như truyền vào size thì kết quả trả về sẽ là mảng có số chiều là size và các phần tử của mảng là ngẫu nhiên từ mảng truyền vào hàm `choice`
+
+Chúng ta có thể define ra xác suất xuất hiện nếu lấy ra của các phần tử mảng qua `p` parameter truyền vào hàm như sau:
+
+```Python
+from numpy import random
+
+x = random.choice([3, 5, 7, 9], p=[0.1, 0.3, 0.6, 0.0], size=(100))
+
+print(x)
+```
+
+Trong đó mảng xác suất p gồm các số thực nằm trong đoạn từ `[0-1]` sao cho tổng các xác suất `=1` Và xác suất `0` tương ứng với trường hợp không bao giờ xuất hiện phần tử và `1` tương ứng với luôn luôn xuất hiện. Các xác suất được sắp xếp theo thứ tự tương ứng với từng phần tử mảng.
+
+Trong ví dụ trên các xác suất và phần tử mảng tương ứng là `3-xs:0.1`, `5-xs:0.3`, `7-xs:0.6`, `9-xs:0`.
+
+Như vậy dòng lệnh sẽ cho kết quả là mảng 100 phần tử, trong đó không có phần tử nào là `9` do xác suất = 0.
+
+## Hoán vị
+
+Để sinh ra một hoán vị của một tập hợp thì dùng các hàm `random.shuffle` hoặc `random.permutation`
+
+Trong đó cả 2 hàm đều sinh ra hoán vị của tập hợp nhưng `shuffle` thì biến đổi tập hợp gốc còn `permutation` thì không. Và `shuffle` thì phải truyền vào mảng còn `permutation` thì có thể truyền vào một số hoặc một mảng.
+
+**shuffle:**
+
+![shuffle](../img/shuffle.png)
+
+![shuffle_1](../img/shuffle_1.png)
+
+
+**permutation**
+
+![permutation](../img/permutation.png)
+![permutation_1](../img/permutation-1.png)
+
+Nếu chỉ truyền vào một số `n` thì `permutation` sẽ cho ra một hoán vị gồm các số nguyên từ `0 - (n-1)`
