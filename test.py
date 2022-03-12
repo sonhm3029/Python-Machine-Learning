@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 A = np.array([[1, 2, 3],
        [4, 5, 6]])
@@ -58,3 +59,15 @@ plt.plot(x, y)
 plt.grid(color = 'green', linestyle = '--', linewidth = 0.5)
 
 plt.show()
+
+arr = [1,2,3,4];
+
+ok = pd.Series(arr);
+
+print(type(ok));
+
+calories = {"day1": 420, "day2": 380, "day3": 390}
+
+myvar = pd.Series(calories)
+
+print(myvar[0])
