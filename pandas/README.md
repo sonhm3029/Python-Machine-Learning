@@ -322,3 +322,152 @@ Dòng 11 và 12 bị lặp dữ liệu
 
 ## Giải quyết Empty cells
 
+### Cách thứ nhất để giải quyết vấn đề này là loại bỏ chúng đi. Tuy nhiên cách này sẽ ok chỉ nếu như tập dữ liệu của chúng ta rất lớn và việc loại bỏ đi số dòng chứa empty cell kia không là vấn đề gì.
+
+```Python
+import pandas as pd
+
+df = pd.read_csv('data.csv')
+
+new_df = df.dropna()
+
+print(new_df.to_string())
+```
+
+Hàm `.dropna()` sẽ trả về một tập dữ liệu mới mà đã được remove tất cả các hàng có ô dữ liệu trống mà không làm thay đổi tập dữ liệu gốc.
+
+Nếu muốn thay đổi tập dữ liệu gốc thì thêm tham số `inplace=True`. Lúc này thì `.dropna(inplace= True)` không trả về gì hết. Chỉ thay đổi trực tiếp tập dữ liệu gốc.
+
+### Cách khác để giải quyết là điền giá trị vào các ô có dữ liệu trống
+
+Với cách này thì phải xem xét dữ liệu điền vào thế nào cho hợp lý. Cách thông thường là chúng ta điền vào các giá trị `mean`, `median` hoặc `mode` của cột vào ô.
+
+```Python
+import pandas as pd
+
+df = pd.read_csv('data.csv')
+
+x = df["Calories"].mean()
+
+df["Calories"].fillna(x, inplace = True)
+```
+
+trong đó 
+
+- `.mean()`: trả về giá trị trung bình của cột
+- `.median()`: trả về giá trị nằm chính giữa tập giá trị của cột sau khi đã sắp xếp tập giá trị tăng hoặc giảm giần.
+- `.mode()`: trả về giá trị xuất hiện nhiều nhất của tập giá trị.
+
+## Giải quyết Format sai
+
+Có hai cách, cách 1 khuyền dùng là format lại tất cả giá trị của cột thành một format duy nhất. Nếu không được thì dùng cách 2
+
+Cách 2 là xóa dòng có dữ liệu bị format sai đi bằng dropnna
+
+```Python
+df.dropna(subset=['Date'], inplace = True)
+```
+
+## Giải quyết dữ liệu sai
+
+Khi nhìn vào tập dataset ta có thể đoán được ô dữ liệu nào đó sai khi một mình nó một kiểu trong cột dữ liệu. Khi đó có 2 cách để giải quyết là sửa dữ liệu hoặc xóa dòng đó đi.
+
+Để truy cập vào từng điểm dữ liệu trong datafram thì ta có syntax:
+
+```Python
+df.loc[label, tencot]
+```
+
+Để truy cập vào tập label của dataframe thì dùng
+
+```Python
+df.index
+```
+
+Ví dụ cách sửa:
+
+```Python
+for x in df.index:
+  if df.loc[x, "Duration"] > 120:
+    df.loc[x, "Duration"] = 120
+```
+
+Ví dụ cách xóa:
+
+```Python
+for x in df.index:
+  if df.loc[x, "Duration"] > 120:
+    df.drop(x, inplace = True)
+```
+
+## Giải quyết dữ liệu lặp
+
+Có thể biết được dòng dữ liệu nào bị lặp lại bằng cách nhìn hoặc dùng `duplicated`
+
+Method này sẽ trả về một series với dữ liệu là `True` đối với cột bị lặp và `False` nếu cột không bị lặp.
+
+Để xóa các dòng bị lặp
+
+```Python
+df.drop_duplicates(inplace = True)
+```
+
+# Correlations
+
+```Python
+df.corr()
+```
+
+Kết quả:
+
+![correlation](../img/correlation.png)
+
+hàm `.corr` trả về bảng cho thấy mối quan hệ giữa từng cặp cột với nhau bằng các giá trị dao động trong đoạn `[-1,1]`. trong đó trị tuyệt đối của các giá trị này càng gần về 1 thì mqh giữa chúng càng tốt và ngược lại.
+
+Với các giá trị càng gần về 1 có nghĩa là khi các giá trị của cột này tăng thì cột kia cũng vậy (đồng biến)
+
+Vơi các giá trị càng gần về -1 cũng vậy, truy nhiên 2 cột sẽ có mối quan hệ đối nghịch tức cột này tăng thì cột kia giảm và ngược lại.
+
+# Pandas plotting
+
+Dataframe có hàm `plot` của nó. Ta chỉ cần dùng `plt.show()` của matplotlib để show ra.
+
+**Ví dụ**
+
+```Python
+import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv('data.csv')
+
+df.plot()
+
+plt.show()
+```
+
+Đối với `plot()` không truyền vào tham số gì thì kết quả in ra như sau:
+
+![pandas_plot_1](../img/pandas_plot_1.png)
+
+Ta có thể chỉ định ra show những cột nào trên đồ thị, và loại đồ thị.
+
+```Python
+df.plot(kind = 'scatter', x = 'Duration', y = 'Calories')
+```
+
+Kết quả:
+
+![pandas_plot_2](../img/pandas_plot_2.png)
+
+Lưu ý loại đồ thị và dữ liệu show ra. Ở trên là dạng đồ thị điểm cho nên cần tập các điểm. Nếu như tập điểm là 4 như ví dụ đầu tiên mà ta dùng `scatter` thì sẽ báo lỗi.
+
+Ví dụ dùng Histogram với cột:
+
+```Python
+df["Duration"].plot(kind = 'hist')
+```
+
+Kết quả:
+
+![pandas_hist](../img/pandas_hist.png)
+
