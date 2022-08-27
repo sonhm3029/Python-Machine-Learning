@@ -1,21 +1,16 @@
 # Convolution Neural Network
 
 ## Table of contents
-
 - [Convolution Neural Network](#convolution-neural-network)
   - [I. Edge Detection](#i-edge-detection)
     - [1. Overview](#1-overview)
     - [2. Filter Kernel](#2-filter-kernel)
-      - [a. Vị trí của các giá trị 1 và -1 trong ma trận kernel ảnh hưởng thế nào đến việc detect edge](#a-v-tr-ca-cc-gi-tr-1-v--1-trong-ma-trn-kernel-nh-hng-th-no-n-vic-detect-edge)
-      - [b. Các loại ma trận kernel khác nhau thì sẽ giúp exact ra các feature của ảnh khác nhau](#b-cc-loi-ma-trn-kernel-khc-nhau-th-s-gip-exact-ra-cc-feature-ca-nh-khc-nhau)
-      - [c. Padding](#c-padding)
-      - [d. Stride](#d-stride)
-    - [3. Convolution với ma trận ảnh có chiều sâu lớn hơn 1](#3-convolution-vi-ma-trn-nh-c-chiu-su-ln-hn-1)
-    - [4. Valid convolution và Same convolutions](#4-valid-convolution-v-same-convolutions)
+    - [3. Convolution với ma trận ảnh có chiều sâu lớn hơn 1](#3-convolution-voi-ma-tran-anh-co-chieu-sau-lon-hon-1)
+    - [4. Valid convolution và Same convolutions](#4-valid-convolution-va-same-convolutions)
   - [II. Convolution layer](#ii-convolution-layer)
   - [III. Pooling layer](#iii-pooling-layer)
   - [IV. LeNet-5](#iv-lenet-5)
-  - [Tại sao phải sử dụng CNN](#ti-sao-phi-s-dng-cnn)
+  - [Tại sao phải sử dụng CNN](#tai-sao-phai-su-dung-cnn)
 
 ## I. Edge Detection
 
