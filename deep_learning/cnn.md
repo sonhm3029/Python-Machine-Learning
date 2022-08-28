@@ -184,13 +184,43 @@ Thông thường loại pooling layer hay được sử dụng là Max pooling l
 
 ![](../img/pooling_2.png)
 
-## IV. LeNet-5
+## IV. Classic CNN
 
-![](../img/lenet_1.png)
+### 1. [LeNet-5](./lenet-5.ipynb)
 
-Chi tiết về layer của mạng LeNet-5
+### 2. [AlexNet](./alexnet.ipynb)
 
-![](../img/conv_4.png)
+### 3. [VGG-16](./vgg_16.ipynb)
+
+### 4. [ResNet](./resnet.ipynb)
+
+## V. Inception network
+
+[Chi tiết](./inception.ipynb)
+
+## VI. R-CNN ( Regional convolution neural network) cho bài toán object detection
+
+Thông thương ta chỉ sử dụng CNN cho trong việc nhận diện chữ viết tay hoặc ảnh chỉ có một đối tượng
+
+Khi mở rộng ra với việc bức ảnh có nhiều đối tượng thì bài toán trở nên phức tạp hơn đó là ta cần xác định được vị trí của các đối tượng hay cần xác định các bounding box (hình chữ nhật) bao quanh đối tượng. Với mỗi bounding box thì cần phần loại xem đấy là đối tượng gì (chó, ngựa, ô tô...) với bao nhiêu phần trăm chắc chắn.
+
+**R-CNN (Region with CNN feature):**
+
+Ý tưởng của thuật toán R-CNN là:
+
+- Bước 1: Dùng Selective Search algorithm để lấy ra khoảng 2000 bounding box trong input mà có khả năng chứa đối tượng
+
+- Bước 2: Với mỗi bounding box ta xác định xem nó là đối tượng nào (người, ô tô, xe đạp, ...)
+
+![](../img/r-cnn_1.png)
+
+### Select search algorithm
+
+Input của thuật toán là ảnh màu, output là khoảng 2000 region proposal (bounding box) mà có khả năng chứa các đối tượng.
+
+Đầu tiên ảnh được segment qua thuật toán [Graph Based Image Segmentation](http://cs.brown.edu/people/pfelzens/segment/), thuật toán dựa vào lý thuyết đồ thị và không áp dụng deep learning
+
+![](../img/r-cnn_2.png)
 
 ## Tại sao phải sử dụng CNN
 
