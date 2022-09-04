@@ -194,11 +194,79 @@ Thông thường loại pooling layer hay được sử dụng là Max pooling l
 
 ### 4. [ResNet](./resnet.ipynb)
 
-## V. Inception network
+### 5. [MobileNet](./mobile.ipynb)
+
+## V. EfficentNet
+
+Ý tưởng là cải thiện model với 3 tham số:
+
+- `r`: resolution của ảnh đầu vào
+- `dept`: dept của mạng NN (số layer ...)
+- `w`: Độ lớn của các layer trong NN.
+
+Làm thể nào để phối hợp các tham số trên => cải thiện tốt nhất cho NN trên các thiết bị.
+
+## VI. Inception network
 
 [Chi tiết](./inception.ipynb)
 
-## VI. R-CNN ( Regional convolution neural network) cho bài toán object detection
+## VII. Transfer Learning
+
+Việc xây dựng from scratch một mô hình có những lúc sẽ hơi tốn thời gian và có thể nếu như tập dataset không đủ lớn sẽ dẫn đến việc xây dựng from scratch này còn đạt hiệu quả không cao.
+
+Về mặt lý thuyết, việc sử dụng CNN là để extract ra các features của tập ảnh trong training set. Từ đó đã cho ta một cách không cần tốn công xây dựng mô hình from scratch mà sử dụng `pretrained model`. `Pretrained model` là một mô hình của cộng đồng đã được sử dụng training trên các tập dataset khổng lồ như `IMAGE NET`, do đó mô hình này sẽ có các `features` mà ta cần khi sử dụng CNN.
+
+### 1) Lấy ví dụ cho sử dụng Transfer Learning 
+
+Cho bài toán là nhận diện ảnh nào là ảnh `Tiger`, ảnh nào là ảnh `Misty` và ảnh nào không thuộc 2 loại ảnh trên. Với bộ dataset để thực hiện train và test model nhỏ.
+
+Ta sử dụng một `pre-trained` model ví dụ như `resnet` cho `IMAGE NET` với đầu ra là `1000 outputs`:
+
+![](../img/transfer_1.png)
+
+Việc chúng ta cần làm là `freeze` các `Conv, pool` layer lại, không training trên các layer này. Thay `fully connected layer` của `pre-trained model` bằng `fully connected layer` theo ý muốn của chúng ta. Ta chỉ thực hiện training trên các `FCL` này.
+
+### 2) Đối với bài toán trên nhưng tập dataset cho lớn hơn
+
+Với tập dataset cho lớn hơn thì việc chúng ta nên làm là `freeze` một số lượng nhất định `conv, pool` layer chứ không `freeze` hết, sau đó thực hiện training trên các `layer` không bị `freeze`.
+
+Tập dataset càng lớn => lượng `freeze` layer càng nên nhỏ lại.
+
+![](../img/transfer_2.png)
+
+Nếu tập dataset đủ lớn thì ta có thể sử dụng toàn bộ model để training lại => bớt được bước xây dựng model.
+
+## VIII. Data Augmentation
+
+Các kĩ thuật `Data Augmentation` để cải thiện hiệu quả cho training model :
+
+### 1) Mirroring
+
+- Là flip horizontal ảnh
+
+![](../img/augment_1.png)
+
+### 2) Random Cropping
+
+Radom crop ra phần ảnh nào đó (đảm bảo chứa features cần thiết)
+
+![](../img/augment_2.png)
+
+### 3) Rotatin, shearing, local wrapping
+
+### 4) Color shifting
+
+Thêm bớt giá trị pixel của các channel `(R,G,B)`
+
+![](../img/augment_3.png)
+
+### 5) Implementing distortions during training
+
+
+## IX. State of Computer Vision
+
+
+## X. R-CNN ( Regional convolution neural network) cho bài toán object detection
 
 Thông thương ta chỉ sử dụng CNN cho trong việc nhận diện chữ viết tay hoặc ảnh chỉ có một đối tượng
 
