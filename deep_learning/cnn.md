@@ -290,6 +290,25 @@ Input của thuật toán là ảnh màu, output là khoảng 2000 region propos
 
 ![](../img/r-cnn_2.png)
 
+
+## XI. Ensemble Learning
+
+Là kết hợp các model khác nhau lại để được một model mạnh hơn.
+
+![](../img/ensemble_1.png)
+
+Có 3 biến thể của `Ensemble Learning`:
+
+- `Bagging`: Xây dựng một lượng lớn các model (thường là cùng loại) trên những subsamples khác nhau từ tập training dataset (random sample trong 1 dataset để tạo 1 dataset mới). Những model này sẽ được train độc lập và song song với nhau nhưng đầu ra của chúng sẽ được trung bình cộng để cho ra kết quả cuối cùng.
+- `Boosting`: Xây dựng một lượng lớn các model (thường là cùng loại). Mỗi model sau sẽ học cách sửa những errors của model trước (dữ liệu mà model trước dự đoán sai) -> tạo thành một chuỗi các model mà model sau sẽ tốt hơn model trước bởi trọng số được update qua mỗi model (cụ thể ở đây là trọng số của những dữ liệu dự đoán đúng sẽ không đổi, còn trọng số của những dữ liệu dự đoán sai sẽ được tăng thêm). Chúng ta sẽ lấy kết quả của model cuối cùng trong chuỗi model này làm kết quả trả về (vì model sau sẽ tốt hơn model trước nên tương tự kết quả sau cũng sẽ tốt hơn kết quả trước).
+- `Stacking`: Xây dựng một số model (thường là khác loại) và một meta model (supervisor model), train những model này độc lập, sau đó meta model sẽ học cách kết hợp kết quả dự báo của một số mô hình một cách tốt nhất.
+
+![](../img/ensemble_2.png)
+
+Stacking: 
+
+![](../img/ensemble_3.png)
+
 ## Tại sao phải sử dụng CNN
 
 Có 2 lợi ích chính (Theo thầy Andrew Ng):

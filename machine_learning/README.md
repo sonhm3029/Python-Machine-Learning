@@ -57,3 +57,7 @@ Ensemble Algorithms
 - Boosting
 - AdaBoost
 - Random Forest
+
+# II Decision tree
+
+Xem tại đây : [decision tree](./decision_tree.ipynb)
