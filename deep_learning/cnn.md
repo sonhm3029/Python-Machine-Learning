@@ -290,8 +290,115 @@ Input của thuật toán là ảnh màu, output là khoảng 2000 region propos
 
 ![](../img/r-cnn_2.png)
 
+Với đầu ra của Select search algorithm trên, ta vẫn chưa thể thực hiện được tiếp vì ta thấy các đối tượng trong ảnh có thể chứa nhiều hơn 1 màu hoặc bị che mất một phần bởi màu của đối tượng khác
 
-## XI. Ensemble Learning
+=> Cần nhóm các vùng màu với nhau để làm region proposal
+
+Tiếp theo, các vùng màu được nhóm với nhau dựa trên độ tương đồng về màu sắc, hướng gradient, kích thước, ...
+
+Cuối cùng các region proposal được xác định dựa trên các nhóm vùng màu.
+
+### Phân loại region proposal
+
+Ta thấy răng, output của `selective search` cho ra tới 2000 region proposal nên có rất nhiều region proposal không chứa đối tượng nào. Vậy nên ta cần thêm 1 lớp background ( Không chứa đối tượng nào). Ví dụ như hình dưới ta có 4 region proposal, ta sẽ phân loại mỗi bounding box là người, ngựa hay background.
+
+![](../img/r_cnn_2.webp)
+
+Sau đó các region proposal được resize lại về cùng kích thước và thực hiện transfer learning với feature extractor, sau đó các extracted feature được cho vào thuật toán SVM để phân loại ảnh.
+
+Bên cạnh đó thì extracted feature cũng được dùng để dự đoán 4 offset values cho mỗi cạnh. Ví dụ như khi region proposal chứa người nhưng chỉ có phần thân và nửa mặt, nửa mặt còn lại không có trong region proposal đó thì offset value có thể giúp mở rộng region proposal để lấy được toàn bộ người.
+
+### Vấn đề với R-CNN
+
+Hồi mới xuất hiện thì thuật toán hoạt động khá tốt cho với các thuật toán về computer vision trước đó nhờ vào CNN, tuy nhiên nó vẫn có khá nhiều hạn chế:
+
+Vì với mỗi ảnh ta cần phân loại các class cho 2000 region proposal nên thời gian train rất lâu.
+Không thể áp dụng cho real-time thì mỗi ảnh trong test set mất tới 47s để xử lý.
+
+### Fast R-CNN
+
+Khoảng 1.5 năm sau đó, Fast R-CNN được giới thiệu bới cùng tác giải của R-CNN, nó giải quyết được một số hạn chế của R-CNN để cải thiện tốc độ.
+
+Tương tự như R-CNN thì Fast R-CNN vẫn dùng selective search để lấy ra các region proposal. Tuy nhiên là nó không tách 2000 region proposal ra khỏi ảnh và thực hiện bài toán image classification cho mỗi ảnh. Fast R-CNN cho cả bức ảnh vào ConvNet (một vài convolutional layer + max pooling layer) để tạo ra convolutional feature map.
+
+Sau đó các vùng region proposal được lấy ra tương ứng từ convolutional feature map. Tiếp đó được Flatten và thêm 2 Fully connected layer (FCs) để dự đoán lớp của region proposal và giá trị offset values của bounding box.
+
+![](../img/r_cnn_3.webp)
+
+Tuy nhiên là kích thước của các region proposal khác nhau nên khi Flatten sẽ ra các vector có kích thước khác nhau nên không thể áp dụng neural network được. Thử nhìn lại xem ở trên R-CNN đã xử lý như thế nào? Nó đã resize các region proposal về cùng kích thước trước khi dùng transfer learning. Tuy nhiên ở feature map ta không thể resize được, nên ta phải có cách gì đấy để chuyển các region proposal trong feature map về cùng kích thước => `Region of Interest (ROI)` pooling ra đời.
+
+### Resion of Interest (ROI) pooling
+
+ROI pooling là một dạng của pooling layer. Điểm khác so với max pooling hay average pooling là bất kể kích thước của tensor input, ROI pooling luôn cho ra output có kích thước cố định được định nghĩa trước.
+
+Ta kí hiệu a/b là phần nguyên của a khi chia cho b và a%b là phần dư của a khi chia cho b. Ví dụ: 10/3 = 3 và 10%3 = 1.
+
+Gọi input của ROI pooling kích thước `m*n` và output có kích thước `h*k `(thông thường h, k nhỏ ví dụ 7*7).
+
+- Ta chia chiều rộng thành h phần, (h-1) phần có kích thước m/h, phần cuối có kích thước m/h + m%h.
+- Tương tự ta chia chiều dài thành k phần, (k-1) phần có kích thước n/k, phần cuối có kích thước n/k + n%k.
+
+Ví dụ m=n=10, h=k=3, do m/h = 3 và m%h = 1, nên ta sẽ chia chiều rộng thành 3 phần, 2 phần có kích thước 3, và 1 phần có kích thước 4.
+
+![](../img/r_cnn_4.png)
+
+### Faster R-CNN
+
+Faster R-CNN không dùng thuật toán selective search để lấy ra các region proposal, mà nó thêm một mạng CNN mới gọi là Region Proposal Network (RPN) để tìm các region proposal.
+
+![](../img/faster-rcnn-1.webp)
+
+
+## XI. Image segmentation với U-Net
+
+### 1. Image segmentation
+
+Bài toán image segmentation được chia ra làm 2 loại:
+
+- `Semantic segmentation`: Thực hiện segment với từng lớp khác nhau, ví dụ: tất cả người là 1 lớp, tất cả ô tô là 1 lớp.
+- `Instance segmentation`: Thực hiện segment với từng đối tượng trong một lớp. Ví dụ có 4 người trong ảnh thì sẽ có 3 vùng segment khác nhau cho mỗi người.
+
+![](../img/is_1.webp)
+
+Cần áp dụng kiểu segmentation nào thì phụ thuộc vào bài toán. Ví dụ: cần segment người trên đường cho ô tô tự lái, thì có thể dùng sematic segmentation vì không cần thiết phải phân biệt ai với ai, nhưng nếu cần theo dõi mọi hành vi của mọi người trên đường thì cần instance segmentation thì cần phân biệt mọi người với nhau.
+
+### 2. Mạng U-Net với bài toán semantic segmentation
+
+Như trong bài xử lý ảnh ta đã biết thì ảnh bản chất là một ma trận của các pixel. Trong bài toán image segmentation, ta cần phân loại mỗi pixel trong ảnh. Ví dụ như trong hình trên với sematic segmentation, với mỗi pixel trong ảnh ta cần xác định xem nó là background hay là người. Thêm nữa là ảnh input và output có cùng kích thước.
+
+U-Net được phát triển bởi Olaf Ronneberger et al. để dùng cho image segmentation trong y học. Kiến trúc có 2 phần đối xứng nhau được gọi là encoder (phần bên trái) và decoder (phần bên phải).
+
+![](../img/is_2.webp)
+
+Nhận xét:
+
+- Thực ra phần encoder chỉ là ConvNet bình thường (conv, max pool) với quy tắc quen thuộc từ bài VGG, các layer sau thì width, height giảm nhưng depth tăng.
+- Phần decoder có mục đích là khôi phục lại kích thước của ảnh gốc, ta thấy có up-conv lạ. Conv với stride > 1 thì để giảm kích thước của ảnh giống như max pool, thì up-conv dùng để tăng kích thước của ảnh.
+- Bạn thấy các đường màu xám, nó nối layer trước với layer hiện tại được dùng rất phổ biến trong các CNN ngày nay như DenseNet để tránh vanishing gradient cũng như mang được các thông tin cần thiết từ layer trước tới layer sau.
+
+### a) Loss function
+
+Vì bài toán là phân loại cho mỗi pixel nên loss function sẽ là tổng cross-entropy loss cho mỗi pixel trong toàn bộ bức ảnh.
+
+### b) Transposed convolution
+
+![](../img/transposed_conv.webp)
+
+Với hình trên ta thấy răng quá trình từ trên xuống dưới (Convolution)
+
+- Input: 6x6
+- kernel: 3x3, stride = 1, padding = 0
+- Output: 4x4
+
+Đối với `transposed conv` thì ngược lại. Các ô vuông ở hình trên bị đè lên nhau thì sẽ được cộng dồn. Các quy tắc về stride và padding thì tương tự với convolution.
+
+Xem chi tiết [tại đây](https://github.com/vdumoulin/conv_arithmetic#transposed-convolution-animations)
+
+### c) Code ví dụ
+
+[Code](./unet/u_net.ipynb)
+
+## XII. Ensemble Learning
 
 Là kết hợp các model khác nhau lại để được một model mạnh hơn.
 
