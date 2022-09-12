@@ -398,6 +398,81 @@ Xem chi tiết [tại đây](https://github.com/vdumoulin/conv_arithmetic#transp
 
 [Code](./unet/u_net.ipynb)
 
+## XII. Object Localization
+
+### 1) Localization và detection
+
+![](../img/obj_l_1.png)
+
+- Khác với bài toán thông thường về classification, bài toán `classification with localization` ngoài xác định `label` cho ảnh thì còn xác định `bounding box` cho vật thể.
+
+- Nâng cao hơn cho bài toán `classification with localization` (1 vật thể trong ảnh) sẽ là bài toán `detection` với input là ảnh gồm nhiều vật thể và yêu cầu là xác định các `bounding box` cùng với `label` của các vật thể xác định bởi các `bounding box` đó.
+
+### 2) Classification with localization
+
+Với bài toán tiêu chuẩn của `classification with localization` thì output của ConvNet ngoài `label` thì còn có các thông số `bx, by, bh, bw` với `(bx, by)` là tọa độ tâm của đối tượng trong ảnh và `bh, bw` là độ dài các cạnh của `bounding box` cho vật thể cần xác định.
+
+#### Xác định label cho bài toán:
+
+![](../img/obj_l_2.png)
+
+Với các thông tin như trên ta có thể xác định được ra output của bài toán (label y) có dạng như sau:
+
+![](../img/obj_l_3.png)
+
+Ta thấy rằng y gồm các phần tử là :
+
+- `pc`: là phần tử mang giá trị `1` khi xác định được có đối tượng trong hình (ứng vs 1, 2,3  - pedestrian, car, motorcycle) và mang giá trị `0` khi ảnh chỉ là background (không có đối tượng).
+- `bx, by, bw, bh` là các thông số về bounding box đã được đề cập.
+
+- `c1, c2, c3` là thông số chỉ ra class của đối tượng. Ở đây giá trị trả về bộ `c1 c2 c3` sẽ là one-hot encoding với `100 - pedestrain`, `010 - car` và `0010- motocycle`.
+
+Như vậy ta có hàm loss:
+
+- Bằng tổng bình phương các `(yi_^ - yi)` với `yi` lần lượt là các giá trị của phần tử xét từ trên xuống của y là `pc, bx, by,...`
+
+- Bằng `(y1_^ - y1)^2` khi `y1=0` tức là ảnh là background => do vậy không cần quan tâm đến các giá trị `bx, by, ...c1, c2, c3`
+
+### 3) Landmark detection
+
+Với `Bounding box` để xác định vị trí đối tượng thì ta chỉ cần tham số đầu ra là `bx, by, bh, bw` hay là hình chữ nhật. Nhưng khi đi sâu hơn về bài toán xác định đường bao của vật thể ( khác hình chữ nhật), ví dụ như đôi mắt thì ta cần một số nhiều nhất định các cặp điểm `(lix, liy)` để xác định đường bao của vật thể.
+
+![](../img/obj_l_4.png)
+
+### 4) Object detection
+
+Với ý tưởng Object detection thông thường với CNN, ta sẽ làm như sau:
+
+- Đầu tiên thì ta cần phải có tập training set với các ảnh chỉ gồm 1 đối tượng (Đã được cắt, trọng tâm vào đối tượng). Training ra model để dùng.
+
+![](../img/obj_l_5.png)
+
+Tiếp theo ta sẽ dùng `Sliding windows detection` đó là ta sẽ dùng các kernel với kích thước nhất định thực hiện slide lần lượt trên ảnh chính và thực hiện `classification` trên từng phần ảnh được chọn đó.
+
+![](../img/obj_l_6.png)
+
+- Dùng window càng lớn thì training sẽ nhanh hơn (giảm computation cost) tuy nhiên sẽ hurt performance
+- Dùng window nhỏ thì computation cost sẽ lớn
+- Việc sử dụng object detection theo cách này sẽ chậm
+
+### 5) Convolutional Implementation of Sliding windows
+
+#### Turning FC layer into convolutional layers
+
+![](../img/cisw_1.png)
+
+Từ layer `5x5x16`, ta flatten ra được FC layer với `400 nodes`. Ta có thể biến đổi FC layer này ra convolutions layer bằng cách:
+
+- Input: `5x5x16`
+- Filter: 400 filter size `5x5x16`
+- Output: `1x1x400`
+
+Như vậy `1x1x400` conv layer này có thể coi như FC layer với `400 nodes`.
+
+Tiếp tục thực hiện phép chập với 400 filters `1x1x400` để được conv layer thứ 2 tương ứng vs FC thứ 2.
+
+Thực hiện phép chập với 4 filters `1x1x400` để được đầu ra.
+
 ## XII. Ensemble Learning
 
 Là kết hợp các model khác nhau lại để được một model mạnh hơn.

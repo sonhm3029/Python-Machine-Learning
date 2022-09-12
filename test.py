@@ -1,17 +1,16 @@
-class CountCalls:
-    def __init__(self, func):
-        self.func = func
-        self.num_calls = 0
-    
-    def __call__(self, *args, **kwargs):
-        self.num_calls +=1
-        print(f"This is executed {self.num_calls} times")
-        return self.func(*args, **kwargs)
+import time
+import sys
 
 
-@CountCalls
-def say_hello():
-    print("Hello")
+toolbar_width = 40
+sys.stdout.write("[%s]" % (" " * toolbar_width))
+sys.stdout.flush()
+sys.stdout.write("\b" * (toolbar_width+1)) # return to start of line, after '['
 
-say_hello()
-say_hello()
+for i in range(toolbar_width):
+    time.sleep(0.1) # do real work here
+    # update the bar
+    sys.stdout.write("-")
+    sys.stdout.flush()
+
+sys.stdout.write("]\n") # this ends the progress bar
