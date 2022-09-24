@@ -473,7 +473,228 @@ Tiếp tục thực hiện phép chập với 400 filters `1x1x400` để đư�
 
 Thực hiện phép chập với 4 filters `1x1x400` để được đầu ra.
 
-## XII. Ensemble Learning
+### Convolution implementation of sliding windows
+
+Giả sử tập sliding windows convnet có inputs là `14x14x3` như mô hình trên cho ra output là `1x1x4` (dạng onehot coding cho các classes)
+
+![](../img/cisw_2.png)
+
+Ảnh của tập testset có kích thước là `16x16x3`
+
+Với sliding windows thì ta muốn slide lần lượt các window `14x14x3` trên ảnh test, ví dụ là 4 lần với `stride = 2` ( 4 khung màu `red, green, yellow, violet`) => 4 lần thực hiện
+
+Tuy nhiên ta chỉ cần thực hiện 1 lần với mô hình của model:
+
+![](../img/cisw_3.png)
+
+Ta thấy rằng khi thực hiện qua mô hình của model thì ta thu được output là `2x2x4`. Đối với mỗi phần tử của `2x2x4` cụ thể là 4 bộ `1x1x4` ở 4 góc chính là kết quả thực hiện của 4 sliding window `red, green, yellow, violet`
+
+Như vậy phép sliding windows trên thực tế thay vì thực hiện các quá trình slide và conv khác nhau thì có thể thực hiện đồng thời trên 1 mô hình CNN
+
+![](../img/cisw_4.png)
+
+### 6) Bounding box predictions
+
+Vấn đề đặt ra đó là khi sliding window thì ta gặp các trường hợp đó là không có window nào thực sự chứa hoàn toàn (completely fit) với đối tượng trong ảnh => việc đưa ra bounding box có độ chính xác không cao. Ta thấy trong hình khung màu xanh có vẻ là fit nhất với đối tượng so với các khung khác và khung màu đỏ là khung mà ta mong muốn có được.
+
+![](../img/bbp_1.png)
+
+=> Phương án giải quyết là dùng `YOLO` (You Only Look Once) algorithm
+
+Giá sử ảnh đầu vào là `100x100x3`. Ta chia ảnh ra làm 9 khung bằng nhau ( Thực tế là dùng 19 khung)
+
+![](../img/bbp_2.png)
+
+Thực hiên `Localizaition and classification` cho từng khung trong 9 khung đã chia, ta có labels gỏ training cho từng khung là : 
+
+![](../img/bbp_3.png)
+
+Với labels có `pc = 0` => không chứa đối tượng (background) => không cần quan tâm đến các giá trị còn lại.
+
+Thuật toán `YOLO` thực hiện công việc là tìm ra `mid point` cho các đối tượng và gán đối tượng cho khung chứa `mid point` tương ứng của nó.
+
+![](../img/bbp_4.png)
+
+Như vậy output sẽ có số chiều là `3x3x8` tương ứng với 9 labels của 9 khung.
+
+![](../img/bbp_5.png)
+
+**Chú ý răng với số lượng grid cell chia ra cho ảnh ít, ví dụ như 9 grid cell (3x3) có thể có trường hợp trong cùng một cell có chứa 2 vật thể => Việc sử dụng nhiều grid cell hơn, thực tế là 19x19 sẽ cho kết quả tốt hơn.**
+
+#### Specify the bounding boxes
+
+![](../img/bbp_6.png)
+
+Giá trị của `bx, by, bh, bw` được lấy theo gid cell đã chia như hình dưới
+
+- Trong đó `bx, by` chỉ tọa độ tâm của bounding box xét trong hệ trục của grid cell nên có giá trị thuộc khoảng (0, 1)
+
+- `bw, bh` là chỉ chiều dài và rộng của bounding box lấy theo tỉ lệ với độ dài của cạnh grid cell và có thể lớn hơn 1 trong trương hợp bounding box chiếm 2 grid cell.
+
+### 7) Inersection Over Union
+
+#### Evaluating object localization
+
+Giả sử bounding box mong muốn có màu đỏ, bounding box thực tế là màu tím => ta đánh giá bounding box có đạt tiêu chuẩn hay không dựa trên `Intersection over Union` (IoU)
+
+- Ta có phần gạch màu `green` là hợp của 2 bounding box
+
+- Phần gạch màu vàng là intersction
+
+Ta có công thức
+
+![](../img/iou_1.png)
+
+
+### 8) Non-max suppression
+
+![](../img/nms_1.png)
+
+Vấn đề đặt ra đó là khi sử dụng `(19x19)` grid cell như trên thì có thể xảy ra trường hợp đó là nhiều cell nhận điểm chính giữa đối tượng thuộc vùng của mình dẫn đến tình trạng multiple bounding box
+
+![](../img/nms_2.png)
+
+Non-max suppression thực hiện việc loại bỏ đi các `bounding box` dư thừa và chỉ lấy duy nhất 1 `bounding box` tốt nhất cho đối tượng.
+
+Thuật toán này thực hiện như sau:
+
+![](../img/nms_3.png)
+
+1. Tìm ra các bounding box từ ảnh, như ta thấy ở hình trên ta thấy `đối tượng 1` có 2 bounding box có `pc` (xác suất đối tượng là vật thể) là 0.8 và 0.7, `đối tượng 2` có 3 bounding box có pc lần lượt là 0.6, 0.7, 0.9
+
+2. Loại bỏ đi các box có pc <= 0.6 ( ngưỡng ví dụ)
+
+3. Tìm ra box có `pc` lớn nhất trong số các box còn lại. Ở đây là box có `pc = 0.8` với object 1 và `pc = 0.9` với object 2.
+
+4. Thực hiện tính toán độ trùng lặp (`IoU`) của các box còn lại so với box có `pc` lớn nhất được chọn ở bước 3. Loại bỏ đi các box có `IoU >= 0.5`
+
+Thực hiện lặp lại từ `b3-b4` ...
+
+Cuối cùng ta sẽ được kết quả là bounding box khá thỏa mãn yêu cầu.
+
+![](../img/nms_4.png)
+
+**Ở trên là ví dụ cho bài toán tìm đối tượng trong ảnh cho nên labels ra có các tham số pc, bx, by, bw, bh**
+
+=> Đối với bài toán cần xác định đối tuonwgj + phân loại đối tượng, ví dụ như phân loại ng đi bộ, xe ô tô, xe máy => labels ra sẽ có thêm 3 tham số là `c1, c2, c3`
+
+Như vậy cần thực hiện 3 lần non-max supperssion, mỗi lần ứng vs một classes cần classifier.
+
+Đọc thêm : [https://viblo.asia/p/tim-hieu-va-trien-khai-thuat-toan-non-maximum-suppression-bJzKmr66Z9N](https://viblo.asia/p/tim-hieu-va-trien-khai-thuat-toan-non-maximum-suppression-bJzKmr66Z9N)
+
+### 9) Anchor Boxes
+
+Xét bài toán mà 1 grid cell chứa mid point của đồng thời 2 đối tượng => đầu ra `y = [pc bx by bh bw c1 c2 c3]` không còn khả dụng để xác định đối tượng + bounding box trong hình.
+
+![](../img/ab_1.png)
+
+
+Cách giải quyết đó là ta sẽ dùng anchor box. Đối với ví dụ trên ta dùng 2 anchor box bao quanh 2 đối tượng để xác định ra nhãn y mới như hình.
+
+![](../img/anchor_box.png)
+
+Công việc tiếp theo là xác định xem các anchor box có `IoU` gần nhất với bounding box nào => giá trị mã hóa của anchor box sẽ theo bounding box đó.
+
+![](../img/anchor_box_1.png)
+
+Như hình trên ta thấy rằng anchor box 1 có `IoU` gần với bounding box của đối tượng là người nhất => sẽ có giá trị màu vàng. Tương tự đối với anchor box 2 ứng với bounding box của ô tô.
+
+# XIII. YOLO
+
+Bài toán của chúng ta là xác định ra các đối tượng gồm:
+
+1. pedestrian
+2. car
+3. motorcycle
+
+Giả sử với bức ảnh trên, ta dùng `3x3 grid cell`. Sử dụng 2 `anchor boxes` ta thấy răng tất cả 8 ô có nhãn là `[0 ?...]` do không chứa vật thể nào.
+
+Duy nhất có ô màu `green` có chứ vật thể và được mã hóa với 2 anchor box. Với anchor box 2 có `IoU` gần nhất với bounding box của ô tô => ta có cách mã hóa như hình.
+
+**Chú ý:** Do dùng 2 anchor box => đầu ra sẽ là `3x3x16` với `3x3` cho ra tất cả các ô và 16 giá trị cho nhãn y (2 anchor boxes).
+
+![](../img/yolo_1.png)
+
+Qua đó ta có mô hình:
+
+![](../img/yolo_2.png)
+
+
+Lấy ví dụ khác khi trong ảnh có 2 vật thể, sử dụng `3x3` grid cell và `2 anchor boxes` cho mỗi ô ta có
+
+![](../img/yolo_3.png)
+
+Ta bỏ đi những box có `pc` nhỏ => được:
+
+![](../img/yolo_4.png)
+
+Sử dụng non-max suppression để loại bỏ đi ô có `IoU` nhỏ hơn còn lại
+
+![](../img/yolo_5.png)
+
+
+## XV. Region Proposals
+
+## XVI. Semantic Segmentation with U-Net
+
+![](../img/img_seg_1.png)
+
+Các ứng dụng của image segmentation:
+
+![](../img/img_seg_2.png)
+
+Vậy bằng cách nào mà thuật toán này làm được như vậy.
+
+![](../img/img_seg_3.png)
+
+![](../img/img_seg_4.png)
+
+![](../img/img_seg_5.png)
+
+
+### 1) Transpose Convolutions
+
+![](../img/transposed_conv_1.png)
+
+Đi vào chi tiết:
+
+Giả sử có ma trận `2x2` vs filter `3x3` ta muốn lấy ra outputs là `4x4` với `padding = 1`
+
+=> Ta sử dụng filter `3x3` với `stride = 2`
+
+![](../img/transposed_conv_2.png)
+
+Sau đó cách làm đó là ta lấy từng điểm dữ liệu trong input nhân với filter và apply lên output.
+
+
+Điểm đâu tiên là điểm 2:
+
+![](../img/transposed_conv_3.png)
+
+Tiếp theo đến điểm 1:
+
+Ta thấy rằng kết quả khi apply lên output của điểm 1 có một phần bị overlap với kết quả của điểm 2 khi trước => Ta chỉ cần cộng 2 giá trị lại.
+
+![](../img/transposed_conv_4.png)
+
+![](../img/transposed_conv_5.png)
+
+![](../img/transposed_conv_6.png)
+
+![](../img/transposed_conv_7.png)
+
+### 2) U-Net achitecture
+
+![](../img/u_net_1.png)
+
+Với cách skip connection như trên cho ta:
+
+- Deeper feature từ các layer cuối sau training
+- More detailed texture như vị trí của đối tượng, high resolution của ảnh ban đầu từ layer đầu tiên.
+
+![](../img/u_net_2.png)
+
+## XIV. Ensemble Learning
 
 Là kết hợp các model khác nhau lại để được một model mạnh hơn.
 

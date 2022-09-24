@@ -557,8 +557,6 @@ os.rmdir(<đường dẫn đến folder>);
 
 **Chú ý:** Chỉ có thể xóa folder rỗng.
 
-
-
 # Tìm hiểu về các Python module sử dụng trong Machine Learning:
 
 1. [numpy](./numpy/README.md)

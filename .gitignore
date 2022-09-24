@@ -1,3 +1,15 @@
 /data
 **/data/**
 **/runs/**
+**/__pycache__/**
+__pycache__/
+*.pdf
+!spec/*.pdf
+/coursera/cnn/images
+/coursera/cnn/nb_images
+/coursera/cnn/object_detection/images
+*.mp4
+!spec/*.mp4
+*.avi
+!spec/*.avi
+**/variables/**
