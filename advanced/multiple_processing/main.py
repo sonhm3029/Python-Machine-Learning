@@ -56,15 +56,20 @@ def square_num():
         i*i
         time.sleep(0.1)
 
-for i in range(num_processes):
-    process = Process(target=square_num)
-    processes.append(process)
 
-# Start processes
-for process in processes:
-    
 
 if __name__ == "__main__":
-    print('end main')
+    for i in range(num_processes):
+        process = Process(target=square_num)
+        processes.append(process)
+
+    # Start processes
+    for process in processes:
+        process.start()
+
+    # Join processes
+    for process in processes:
+        process.join()
+        print('end main')
 
     
