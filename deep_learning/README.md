@@ -109,3 +109,42 @@ Thêm vào đó, vì mỗi bước khi train model thì ngẫu nhiên (1-p%) cá
 - Nên dùng model lớn, phức tạp hơn vì ta có dropout chống overfitting.
 - Dropout chỉ nên dùng cho fully connected layer, ít khi được dùng cho ConvNet layer
 - Hệ số p ở các layer nên tỉ lệ với số lượng node trong FC layer đó.
+
+### 5. Batch Normalization
+
+Một trong những giả định chính được đưa ra trong quá trình huấn luyện một mô hình học máy đó là phần phối của dữ liệu được giữ nguyên trong suốt quá trình training. Đối với các mô hình tuyến tính, đơn giản là ánh xạ input với output thích hợp, điều kiện này luôn được thỏa mãn. Tuy nhiên trong trường hợp Neural Network với các lớp được xếp chồng lên nhau, ảnh huonwgr của các hàm activation non-linear, điều kiện trên không còn đúng nữa.
+
+Trong kiến trúc neural network, đầu vào của mỗi lớp phụ thuộc nhiều vào tham số của toàn bộ các lớp trước đó. Hậu quả là trong quá trình back propagation, các trọng số của một lớp được cập nhạt dẫn đến những thay đổi về mặt dữ liệu sau khi đi qua lớp đó. Những thay đổi này bị khuếch đại khi mạng trở nên sâu hơn và cuối cùng làm phân phối của bản đồ đặc trưng (feature map) thay đổi, đây được gọi là hiện tượng covariance shifting. Khi huấn luyện, các lớp luôn phải điều chỉnh trọng số để đáp ứng những thay đổi về phân phối dữ liệu nhận được từ các lớp trước, điều này làm chậm quá trình hội tụ của mô hình.
+
+#### Vấn đề 1:
+
+- Khi dữ liệu chứa nhiều thành phần lớn hơn hoặc nhỏ hơn 0 và không phân bố quanh giá trị trung bình 0 (non zero mean), kết hợp với việc phương sai lớn (high variance) làm cho dữ liệu chứa nhiều thành phần rất lớn hoặc rất nhỏ. Trong quá trình cập nhật trọng số bằng gradient descent, giá trị của dữ liệu ảnh hưởng trực tiếp lên giá trị đạo hàm (gradient), dó đó làm cho giá trị gradient trở lên quá lớn hoặc quá nhỏ => điều này không tốt. Hiện tượng trên xuất hiện kahs phổ biến, phụ thuộc nhiều vào việc khởi tạo trọng số, và có xu hướng nghiêm trọng hơn khi mạng ngày càng sâu.
+
+=> Cần một bước normalize các thành phần dữ liệu về cùng mean và chuẩn hóa variance.
+
+#### Vấn đề 2:
+
+- Các hàm activation non-linear như sigmoid, relu, tanh,... đều có ngưỡng hay vùng bão hòa. Khi lan truyền thẳng, nếu dữ liệu có các thành phần quá lớn hoặc quá nhỏ, sau khi đi qua các hàm activation, các thành phần này sẽ rơi vào vùng bão hòa và có đầu ra giống nhau. Điều này dẫn đến luồng dữ liệu sau đó trở nên giống nhau khi lan truyền trong mạng (covariance shifting), lúc này các lớp còn lại trong mạng không còn phân biệt được các đặc trưng khác nhau. Ngoài ra, đạo hàm tại ngưỡng của các hàm activation bằng 0, điều này cùng khiến mô hình bị vanishing gradient.
+
+=> Cần một bước normalize dữ liệu trước khi đi qua hàm activation
+
+![](../img/batch_norm_1.png)
+
+#### Khái niệm batch normalization
+
+`Batch normalization` thực hiện việc chuẩn hóa (normalizing) và zero centering (mean subtracting) dữ liệu trước khi đưa qua hàm activation (giá trị trung bình (mean) sẽ  được đưa về 0 và phương sai (variance) sẽ được đưa về 1). Để thực hiện 2 công việc trên, batch normaliztion tính toán phương sai và độ lệch chuẩn của dữ liệu dựa trên các batchs, rồi sử dụng 2 tham số $\gamma$ và $\beta$ tinh chỉnh đầu ra.
+
+![](../img/batch_norm_2.png)
+
+#### Hiệu quả của batch normalization
+
+* Batch normalization đưa dữ liệu về zero mean và chuẩn hóa variance trước khi đưa qua
+activation function nhờ đó giải quyết các vấn đề vanishing gradient hay exploding gradient.
+
+* Batch normalization cho phép learning rate lớn trong quá trình huấn luyện.
+
+* Batch-Norm giảm thiểu sự ảnh hưởng của quá trình khởi tạo trọng số ban đầu.
+
+* Batch-Norm chuẩn hóa dữ liệu đầu ra của các layer giúp model trong quá trình huấn luyện
+không bị phụ thuộc vào một thành phần trọng số nhất định. Do đó, Batch-norm còn được sử
+dụng như một regularizer giúp giảm overfitting
