@@ -1043,7 +1043,7 @@ exp_lr_scheduler = lr_scheduler.MultiStepLR(optimizer,
 
 ### 2. Model sử dụng pretrained inceptionresnetv1 98% acc
 
-Link: [Inceptionresnetv1 96%](../inception_resnet_v2_only_train_test_98.ipynb)
+Link: [Inceptionresnetv1 98%](../inception_resnet_v2_only_train_test_98.ipynb)
 
 Path to model dict: [https://drive.google.com/file/d/1L1bfHlSaKmQRxv55BW0Vxpn4Pk9BYpCR/view?usp=sharing](https://drive.google.com/file/d/1L1bfHlSaKmQRxv55BW0Vxpn4Pk9BYpCR/view?usp=sharing)
 
@@ -1057,3 +1057,7 @@ Thay đổi `hyperparameters` với epochs là `50`
 ![](../../img/brain_tumor_2.png)
 
 ![](../../img/brain_tumor_3.png)
+
+#### Miss classified image
+
+![](../../img/brain_tumor_6.png)
