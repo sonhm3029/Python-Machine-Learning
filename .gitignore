@@ -13,3 +13,5 @@ __pycache__/
 *.avi
 !spec/*.avi
 **/variables/**
+*.pth
+!spec/*.pth
